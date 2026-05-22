@@ -56,7 +56,7 @@ const Slide1_Title = () => (
 const Slide2_Problem = () => (
   <div className="flex flex-col h-full animate-fade-in p-8">
     <h2 className={`text-4xl font-bold mb-12 ${theme.navy}`}>Creator Economics Are Broken</h2>
-    <div className="grid grid-cols-3 gap-8 flex-grow">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 flex-grow">
       <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 flex flex-col items-center text-center">
         <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6">
           <Play size={32} />
@@ -88,7 +88,7 @@ const Slide3_Solution = () => (
       <h2 className={`text-4xl font-bold ${theme.navy}`}>The All-In-One Ecosystem</h2>
       <p className="text-xl text-gray-600">Embr unifies 8 distinct verticals into one seamless, creator-owned platform. We invert the economics: <strong className={theme.accent}>Creators keep 90-98%.</strong></p>
       
-      <div className="grid grid-cols-2 gap-4 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
         {['Social Feed & Groups', 'Freelance Gigs', 'Marketplace', 'Music Licensing', 'Events & Ticketing', 'Group Treasuries', 'Mutual Aid', 'Direct Messaging'].map((feature, i) => (
           <div key={i} className="flex items-center space-x-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className={`w-2 h-2 rounded-full ${theme.accentBg}`}></div>
@@ -163,8 +163,8 @@ const Slide5_Product = () => (
     <h2 className={`text-4xl font-bold mb-2 ${theme.navy}`}>Production-Grade from Day One</h2>
     <p className="text-lg text-gray-600 mb-8">849+ files of enterprise-level architecture, ready to scale.</p>
     
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-grow">
-      {[
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 flex-grow">
+        {[
         { title: 'Freelance Gigs', icon: Briefcase, img: ASSETS.gigs },
         { title: 'Marketplace', icon: ShoppingBag, img: ASSETS.marketplace },
         { title: 'Community Groups', icon: Users, img: ASSETS.groups },
@@ -425,6 +425,11 @@ const slides = [
 
 export default function App() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // Touch state for mobile swiping
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
+  const minSwipeDistance = 50;
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? prev : prev + 1));
@@ -433,6 +438,26 @@ export default function App() {
   const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === 0 ? prev : prev - 1));
   }, []);
+
+  // --- TOUCH HANDLERS ---
+  const onTouchStart = (e) => {
+    setTouchEndX(null); 
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) nextSlide();
+    if (isRightSwipe) prevSlide();
+  };
 
   // Keyboard navigation
   useEffect(() => {
@@ -452,30 +477,38 @@ export default function App() {
   return (
     <div className={`min-h-screen ${theme.bg} flex flex-col items-center justify-center font-sans overflow-hidden select-none`}>
       
-      {/* Aspect Ratio Container (16:9 like a real presentation) */}
-      <div className="w-full max-w-6xl aspect-[16/9] bg-[#fdfaf5] relative shadow-2xl rounded-2xl border border-gray-200 overflow-hidden m-4 flex flex-col">
+      {/* Container Update: 
+        Changed to allow vertical scrolling on mobile if needed, 
+        and added the touch event listeners here.
+      */}
+      <div 
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        className="w-full max-w-6xl md:aspect-[16/9] min-h-[80vh] bg-[#fdfaf5] relative shadow-2xl md:rounded-2xl border border-gray-200 overflow-hidden flex flex-col"
+      >
         
-        {/* Main Content Area */}
-        <div className="flex-grow p-8 relative">
+        {/* Main Content Area - Added overflow-y-auto for mobile */}
+        <div className="flex-grow p-4 md:p-8 relative overflow-y-auto">
           <CurrentSlideComponent />
         </div>
 
         {/* Footer / Navigation */}
-        <div className="h-20 bg-white border-t border-gray-100 flex items-center justify-between px-8 z-50">
+        <div className="h-16 md:h-20 bg-white border-t border-gray-100 flex items-center justify-between px-4 md:px-8 z-50 shrink-0">
           <div className="flex items-center gap-2">
-            <img src={ASSETS.logo} alt="Logo" className="w-8 h-8 rounded-full" onError={(e) => { e.target.style.display = 'none'; }} />
-            <span className={`font-bold text-xl ${theme.navy}`}>embr</span>
-            <span className="text-gray-300 ml-2 text-sm">Investor Deck • May 2026</span>
+            <img src={ASSETS.logo} alt="Logo" className="w-6 h-6 md:w-8 md:h-8 rounded-full" onError={(e) => { e.target.style.display = 'none'; }} />
+            <span className={`font-bold text-lg md:text-xl ${theme.navy}`}>embr</span>
+            <span className="text-gray-300 ml-2 text-xs md:text-sm hidden sm:inline">Investor Deck</span>
           </div>
 
           {/* Progress Dots */}
-          <div className="flex gap-2">
+          <div className="flex gap-1 md:gap-2">
             {slides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  currentSlide === idx ? `w-8 ${theme.accentBg}` : 'w-2 bg-gray-200 hover:bg-gray-300'
+                  currentSlide === idx ? `w-6 md:w-8 ${theme.accentBg}` : 'w-2 bg-gray-200 hover:bg-gray-300'
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
@@ -483,26 +516,26 @@ export default function App() {
           </div>
 
           {/* Controls */}
-          <div className="flex gap-4">
+          <div className="flex gap-2 md:gap-4">
             <button 
               onClick={prevSlide}
               disabled={currentSlide === 0}
               className={`p-2 rounded-full transition-colors ${currentSlide === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={20} className="md:w-6 md:h-6" />
             </button>
             <button 
               onClick={nextSlide}
               disabled={currentSlide === slides.length - 1}
               className={`p-2 rounded-full transition-colors ${currentSlide === slides.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={20} className="md:w-6 md:h-6" />
             </button>
           </div>
         </div>
       </div>
       
-      <div className="text-gray-400 text-sm mt-4 flex items-center gap-2">
+      <div className="text-gray-400 text-sm mt-4 hidden md:flex items-center gap-2">
         <Globe size={16} /> Use <kbd className="bg-gray-200 px-2 py-1 rounded text-gray-700 font-mono text-xs mx-1">←</kbd> and <kbd className="bg-gray-200 px-2 py-1 rounded text-gray-700 font-mono text-xs mx-1">→</kbd> to navigate
       </div>
 
