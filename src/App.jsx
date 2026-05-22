@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   ChevronRight, ChevronLeft, Play, Users, 
-  TrendingUp, Lock, RefreshCw, Layers, 
+  TrendingUp, RefreshCw, Layers, 
   Music, CreditCard, Shield, Globe, Briefcase, ShoppingBag, MessageCircle
 } from 'lucide-react';
 
